@@ -53,3 +53,4 @@ def scrape_jobs_from_pages(base_url, site_type, start_page=1):
 
     columns = ["Title", "Company", "Location", "Job Type", "Expire"] if site_type == "duapune" else ["Title", "Company", "Job Type", "Location", "Category", "Language"]
     return pd.DataFrame(jobs, columns=columns)
+
