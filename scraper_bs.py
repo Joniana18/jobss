@@ -1,5 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
+import pandas as pd
 
 def scrape_jobs_from_pages(base_url, site_type, start_page=1):
     jobs = []
@@ -11,12 +12,14 @@ def scrape_jobs_from_pages(base_url, site_type, start_page=1):
         elif site_type == "punajuaj":
             url = f"{base_url}/page/{page}/"
         
-        page_response = requests.get(url)
-        soup = BeautifulSoup(page_response.content, 'html.parser')
+        response = requests.get(url)
+        if response.status_code != 200:
+            break  # Stop if page request fails
+        
+        soup = BeautifulSoup(response.content, 'html.parser')
         
         if site_type == "duapune":
             results = soup.find_all('div', class_='job-listing')
-            print(f"Page {page}: Found {len(results)} jobs")  # Debugging
             for result in results:
                 try:
                     job_title = result.find('h1', class_='job-title').find('a').text.strip()
@@ -26,12 +29,10 @@ def scrape_jobs_from_pages(base_url, site_type, start_page=1):
                     expire = result.find('span', class_='expire').text.strip()
                     jobs.append([job_title, company, location, job_type, expire])
                 except AttributeError:
-                    print(f"Error extracting job: {result}")
                     continue
 
         elif site_type == "punajuaj":
             results = soup.find_all('div', class_='loop-item-content')
-            print(f"Page {page}: Found {len(results)} jobs")  # Debugging
             for result in results:
                 try:
                     job_title = result.find('h3', class_='loop-item-title').find('a').text.strip()
@@ -42,14 +43,13 @@ def scrape_jobs_from_pages(base_url, site_type, start_page=1):
                     language = result.find('span', class_='job-language').text.strip() if result.find('span', class_='job-language') else 'No language'
                     jobs.append([job_title, company, job_type, location, category, language])
                 except AttributeError:
-                    print(f"Error extracting job: {result}")
                     continue
 
-        # Check for the presence of a "Next" button
         next_button = soup.find('a', class_='next page-numbers')
         if not next_button:
             break  # Stop if no "Next" button is found
 
         page += 1
 
-    return jobs
+    columns = ["Title", "Company", "Location", "Job Type", "Expire"] if site_type == "duapune" else ["Title", "Company", "Job Type", "Location", "Category", "Language"]
+    return pd.DataFrame(jobs, columns=columns)
