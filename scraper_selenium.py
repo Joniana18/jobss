@@ -1,5 +1,6 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from webdriver_manager.chrome import ChromeDriverManager
 import time
 import pandas as pd
 
@@ -8,7 +9,8 @@ def scrape_all_jobs_selenium(base_url, site_type, start_page=1):
     # Remove headless mode to see the browser
     # options.add_argument('--headless')  # Comment this line to keep it visible
 
-    driver = webdriver.Chrome(options=options)
+    # Use ChromeDriverManager to download and manage the ChromeDriver binary
+    driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
     all_jobs = []
 
     try:
