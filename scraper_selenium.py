@@ -21,6 +21,7 @@ def scrape_all_jobs_selenium(base_url, site_type, start_page=1):
             time.sleep(5)  # Allow time for the page to load
 
             # Print the page source for debugging
+            print("Page source after initial load:")
             print(driver.page_source)
 
             # Click the "Kërko punë te tjera" link
@@ -44,6 +45,7 @@ def scrape_all_jobs_selenium(base_url, site_type, start_page=1):
             time.sleep(5)  # Increase time to allow full page load
 
             # Print the page source for debugging
+            print(f"Page source for {url}:")
             print(driver.page_source)
 
             if site_type == "duapune":
