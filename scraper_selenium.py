@@ -20,6 +20,10 @@ def scrape_all_jobs_selenium(base_url, site_type, start_page=1):
             driver.get(base_url)
             time.sleep(5)  # Allow time for the page to load
 
+            # Print the page source for debugging
+            print("Page source after initial load:")
+            print(driver.page_source)
+
             # Click the "Kërko punë te tjera" link
             try:
                 search_link = driver.find_element(By.CSS_SELECTOR, "a.all-listed-works")
@@ -39,6 +43,10 @@ def scrape_all_jobs_selenium(base_url, site_type, start_page=1):
             
             driver.get(url)
             time.sleep(5)  # Increase time to allow full page load
+
+            # Print the page source for debugging
+            print(f"Page source for {url}:")
+            print(driver.page_source)
 
             if site_type == "duapune":
                 job_elements = driver.find_elements(By.CSS_SELECTOR, "div.job-listing")
@@ -89,7 +97,7 @@ def scrape_all_jobs_selenium(base_url, site_type, start_page=1):
 
             # Check for the presence of a "Next" button
             if site_type == "duapune":
-                next_button = driver.find_elements(By.CSS_SELECTOR, "a.relative.inline-flex.items-center.px-4.py-2.ml-3.text-sm.font-medium.text-gray-700.bg-white.border.border-gray-300.leading-5.rounded-md.hover:text-gray-500.focus:outline-none.focus:ring.ring-gray-300.focus:border-blue-300.active:bg-gray-100.active:text-gray-700.transition.ease-in-out.duration-150")
+                next_button = driver.find_elements(By.LINK_TEXT, "Vijuese »")
             elif site_type == "punajuaj":
                 next_button = driver.find_elements(By.CSS_SELECTOR, "a.next.page-numbers")
                 
