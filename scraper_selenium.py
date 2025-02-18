@@ -1,16 +1,14 @@
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
-import pandas as pd
-import time
-from time import sleep
 from selenium.webdriver.common.by import By
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.service import Service
+import time
+import pandas as pd
 
 def scrape_all_jobs_selenium(base_url, site_type, start_page=1):
     options = webdriver.ChromeOptions()
     # Remove headless mode to see the browser
-    # options.add_argument('--headless')  # Comment this line to keep it visible
+    # options.add_argument('--headless')  # Uncomment this line to run in headless mode
 
     # Use Service to avoid passing multiple values to WebDriver
     service = Service(ChromeDriverManager().install())
