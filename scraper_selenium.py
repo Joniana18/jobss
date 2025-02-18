@@ -1,16 +1,16 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.keys import Keys
 import time
 import pandas as pd
+from webdriver_manager.chrome import ChromeDriverManager
 
 def scrape_all_jobs_selenium(base_url, site_type, start_page=1):
     options = webdriver.ChromeOptions()
-    # Remove headless mode to see the browser
-    # options.add_argument('--headless')  # Uncomment this line to run in headless mode
+    # options.add_argument('--headless')  # Uncomment for headless mode
 
-    # Use Service to avoid passing multiple values to WebDriver
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=options)
     all_jobs = []
@@ -18,21 +18,17 @@ def scrape_all_jobs_selenium(base_url, site_type, start_page=1):
     try:
         if site_type == "duapune":
             driver.get(base_url)
-            time.sleep(5)  # Allow time for the page to load
+            time.sleep(5)  
 
-            # Print the page source for debugging
-            print("Page source after initial load:")
-            print(driver.page_source)
-
-            # Click the "Kërko punë te tjera" link
+            # Try clicking the "Kërko punë te tjera" button
             try:
-                search_link = driver.find_element(By.CSS_SELECTOR, "a.all-listed-works")
-                search_link.click()
-                time.sleep(5)  # Allow time for the advanced search page to load
-                print("Clicked 'Kërko punë te tjera' link")
+                search_button = driver.find_element(By.XPATH, "//a[contains(text(), 'Kërko punë te tjera')]")
+                driver.execute_script("arguments[0].click();", search_button)
+                time.sleep(5)  
+                print("Clicked 'Kërko punë te tjera' button")
             except Exception as e:
-                print(f"Error clicking 'Kërko punë te tjera' link: {e}")
-                return pd.DataFrame(all_jobs)
+                print(f"Error clicking 'Kërko punë te tjera' button: {e}")
+                return pd.DataFrame(all_jobs) 
 
         page = start_page
         while True:
@@ -40,33 +36,30 @@ def scrape_all_jobs_selenium(base_url, site_type, start_page=1):
                 url = f"https://duapune.com/search/advanced/filter?page={page}"
             elif site_type == "punajuaj":
                 url = f"{base_url}/page/{page}/"
-            
-            driver.get(url)
-            time.sleep(5)  # Increase time to allow full page load
 
-            # Print the page source for debugging
-            print(f"Page source for {url}:")
-            print(driver.page_source)
+            driver.get(url)
+            time.sleep(5)  
 
             if site_type == "duapune":
-                job_elements = driver.find_elements(By.CSS_SELECTOR, "div.job-listing")
+                job_elements = driver.find_elements(By.CSS_SELECTOR, "div.job-listing.col-md-12")
             elif site_type == "punajuaj":
                 job_elements = driver.find_elements(By.CSS_SELECTOR, "div.loop-item-content")
 
-            print(f"Page {page}: Found {len(job_elements)} jobs")  # Debugging
+            print(f"Page {page}: Found {len(job_elements)} jobs") 
 
             if not job_elements:
                 print("No job elements found, stopping...")
-                break  # Stop if no more jobs found
+                break  
 
             for job_element in job_elements:
                 try:
                     if site_type == "duapune":
                         title = job_element.find_element(By.CSS_SELECTOR, "h1.job-title a").text.strip()
-                        company = job_element.find_element(By.CSS_SELECTOR, "small a[style]").text.strip() if job_element.find_elements(By.CSS_SELECTOR, "small a[style]") else "No company found"
+                        company = job_element.find_element(By.CSS_SELECTOR, "small a").text.strip() if job_element.find_elements(By.CSS_SELECTOR, "small a") else "No company found"
                         job_type = job_element.find_element(By.CSS_SELECTOR, "span.time").text.strip() if job_element.find_elements(By.CSS_SELECTOR, "span.time") else "No job type"
-                        location = job_element.find_element(By.CSS_SELECTOR, "span.location").text.strip() if job_element.find_elements(By.CSS_SELECTOR, "span.location") else "No location found"
+                        location = job_element.find_element(By.CSS_SELECTOR, "div.job-details a").text.strip() if job_element.find_elements(By.CSS_SELECTOR, "div.job-details a") else "No location found"
                         expire = job_element.find_element(By.CSS_SELECTOR, "span.expire").text.strip() if job_element.find_elements(By.CSS_SELECTOR, "span.expire") else "No expire date"
+                        
                         job_data = {
                             "Title": title,
                             "Company": company,
@@ -74,6 +67,7 @@ def scrape_all_jobs_selenium(base_url, site_type, start_page=1):
                             "Location": location,
                             "Expire": expire
                         }
+                    
                     elif site_type == "punajuaj":
                         title = job_element.find_element(By.CSS_SELECTOR, "h3.loop-item-title a").text.strip()
                         company = job_element.find_element(By.CSS_SELECTOR, "span.job-company").text.strip() if job_element.find_elements(By.CSS_SELECTOR, "span.job-company") else "No company found"
@@ -81,6 +75,7 @@ def scrape_all_jobs_selenium(base_url, site_type, start_page=1):
                         location = job_element.find_element(By.CSS_SELECTOR, "span.job-location").text.strip() if job_element.find_elements(By.CSS_SELECTOR, "span.job-location") else "No location found"
                         category = job_element.find_element(By.CSS_SELECTOR, "span.job-category").text.strip() if job_element.find_elements(By.CSS_SELECTOR, "span.job-category") else "No category"
                         language = job_element.find_element(By.CSS_SELECTOR, "span.job-language").text.strip() if job_element.find_elements(By.CSS_SELECTOR, "span.job-language") else "No language"
+
                         job_data = {
                             "Title": title,
                             "Company": company,
@@ -95,15 +90,15 @@ def scrape_all_jobs_selenium(base_url, site_type, start_page=1):
                     print(f"Error extracting job: {e}")
                     continue
 
-            # Check for the presence of a "Next" button
+            # Check for "Next" button
             if site_type == "duapune":
-                next_button = driver.find_elements(By.CSS_SELECTOR, "a.relative.inline-flex.items-center.px-4.py-2.ml-3.text-sm.font-medium.text-gray-700.bg-white.border.border-gray-300.leading-5.rounded-md.hover:text-gray-500.focus:outline-none.focus:ring.ring-gray-300.focus:border-blue-300.active:bg-gray-100.active:text-gray-700.transition.ease-in-out.duration-150")
+                next_button = driver.find_elements(By.XPATH, "//a[contains(text(), 'Vijuese »')]")
             elif site_type == "punajuaj":
                 next_button = driver.find_elements(By.CSS_SELECTOR, "a.next.page-numbers")
                 
             if not next_button:
                 print("No next button found, stopping...")
-                break  # Stop if no "Next" button is found
+                break  
 
             page += 1
     
