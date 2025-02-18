@@ -20,6 +20,9 @@ def scrape_all_jobs_selenium(base_url, site_type, start_page=1):
             driver.get(base_url)
             time.sleep(5)  # Allow time for the page to load
 
+            # Print the page source for debugging
+            print(driver.page_source)
+
             # Click the "Kërko punë te tjera" link
             try:
                 search_link = driver.find_element(By.CSS_SELECTOR, "a.all-listed-works")
@@ -39,6 +42,9 @@ def scrape_all_jobs_selenium(base_url, site_type, start_page=1):
             
             driver.get(url)
             time.sleep(5)  # Increase time to allow full page load
+
+            # Print the page source for debugging
+            print(driver.page_source)
 
             if site_type == "duapune":
                 job_elements = driver.find_elements(By.CSS_SELECTOR, "div.job-listing")
